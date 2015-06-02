@@ -6,6 +6,7 @@
 var mongoose = require('mongoose'),
 	errorHandler = require('./errors.server.controller'),
 	Article = mongoose.model('Article'),
+	Diary = mongoose.model('Diary'),
 	_ = require('lodash');
 
 /**
@@ -13,7 +14,19 @@ var mongoose = require('mongoose'),
  */
 exports.create = function(req, res) {
 	var article = new Article(req.body);
-	article.user = req.user;
+	article.diary = req.user.diary;
+
+	/*var diaryField;
+	Diary.findOne({ 'user': req.user.id }, function(err, diary){
+		if(err) {
+			return res.status(400).send({
+				message: errorHandler.getErrorMessage(err)
+			});
+		}else{
+			diaryField = diary;
+		}
+	});
+	article.diary = diaryField;*/
 
 	article.save(function(err) {
 		if (err) {
@@ -73,7 +86,7 @@ exports.delete = function(req, res) {
  * List of Articles
  */
 exports.list = function(req, res) {
-	Article.find().sort('-created').populate('user', 'displayName').exec(function(err, articles) {
+	Article.find().sort('-created').populate('diary.user', 'displayName').exec(function(err, articles) {
 		if (err) {
 			return res.status(400).send({
 				message: errorHandler.getErrorMessage(err)
@@ -88,7 +101,7 @@ exports.list = function(req, res) {
  * Article middleware
  */
 exports.articleByID = function(req, res, next, id) {
-	Article.findById(id).populate('user', 'displayName').exec(function(err, article) {
+	Article.findById(id).populate('diary.user', 'displayName').exec(function(err, article) {
 		if (err) return next(err);
 		if (!article) return next(new Error('Failed to load article ' + id));
 		req.article = article;

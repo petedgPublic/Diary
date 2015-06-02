@@ -25,10 +25,15 @@ var ArticleSchema = new Schema({
 		default: '',
 		trim: true
 	},
-	user: {
+	diary: {
+		type: Schema.ObjectId,
+		ref: 'Diary'
+	}
+	/*user: {
 		type: Schema.ObjectId,
 		ref: 'User'
-	}
+	}*/
+
 });
 
 mongoose.model('Article', ArticleSchema);

@@ -7,7 +7,22 @@ var _ = require('lodash'),
 	errorHandler = require('../errors.server.controller'),
 	mongoose = require('mongoose'),
 	passport = require('passport'),
-	User = mongoose.model('User');
+	User = mongoose.model('User'),
+	Diary = mongoose.model('Diary');
+
+
+function createDiaryForUser(user, callback){
+	var diary = new Diary({ isPublic: false, profilePicturePath: user.username + '_profile', backgroundImagePath: user.username + '_background', user: user.id});
+
+	diary.save(function(err, diary) {
+		if (err) {
+			console.log(err);
+		} else {
+			return callback(diary.id);
+		}
+	});
+}
+
 
 /**
  * Signup
@@ -24,7 +39,7 @@ exports.signup = function(req, res) {
 	user.provider = 'local';
 	user.displayName = user.firstName + ' ' + user.lastName;
 
-	// Then save the user 
+	// Then save the user
 	user.save(function(err) {
 		if (err) {
 			return res.status(400).send({
@@ -34,6 +49,15 @@ exports.signup = function(req, res) {
 			// Remove sensitive data before login
 			user.password = undefined;
 			user.salt = undefined;
+
+			//createDiaryForUser(user);
+
+			createDiaryForUser(user, function(diaryId){
+				console.log('\n\n' + diaryId + '\n\n');
+				user.update({ diary : diaryId}, {}, function(err){
+					if (err) console.log(err);
+				});
+			});
 
 			req.login(user, function(err) {
 				if (err) {
